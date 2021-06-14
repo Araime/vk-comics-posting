@@ -4,7 +4,7 @@ import requests
 from dotenv import load_dotenv
 
 
-def get_comics_info():
+def get_random_comics_info():
     current_comics = requests.get('https://xkcd.com/info.0.json')
     current_comics.raise_for_status()
     random_comics_id = random.randint(1, current_comics.json()['num'])
@@ -82,7 +82,7 @@ if __name__ == '__main__':
         'v': 5.131
     }
 
-    comics_link, comics_comment, filename = get_comics_info()
+    comics_link, comics_comment, filename = get_random_comics_info()
     download_comics(comics_link, filename)
 
     upload_server = get_wall_upload_server(vk_url, vk_group_id)
