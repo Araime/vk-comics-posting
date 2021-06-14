@@ -2,6 +2,7 @@ import os
 import random
 import requests
 from dotenv import load_dotenv
+from urllib import parse
 
 
 def get_random_comics_info():
@@ -11,7 +12,8 @@ def get_random_comics_info():
     random_comics = requests.get(f'https://xkcd.com/{random_comics_id}/info.0.json')
     random_comics.raise_for_status()
     comix_info = random_comics.json()
-    filename = comix_info['img'].rsplit('/', 1)[1]
+    unquoted_url = parse.unquote(comix_info['img'])
+    filename = parse.urlparse(unquoted_url).path.rstrip('/').split('/')[-1]
     return comix_info['img'], comix_info['alt'], filename
 
 
