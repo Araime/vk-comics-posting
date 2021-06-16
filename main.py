@@ -24,9 +24,14 @@ def download_comics(comix_link, filename):
         file.write(response.content)
 
 
-def get_wall_upload_server(url, group_id):
+def get_wall_upload_server(url, group_id, token, api_version):
     url_method = f'{url}photos.getWallUploadServer'
-    payloads['group_id'] = group_id
+    payloads = {
+        'access_token': token,
+        'extended': 1,
+        'group_id': group_id,
+        'v': api_version
+    }
     response = requests.get(url_method, params=payloads)
     response.raise_for_status()
     response_details = response.json()
@@ -43,17 +48,20 @@ def upload_photo(upload_url, photo):
     if response.json()['photo'] == '[]':
         return None
     uploaded_photo = response.json()
-    return uploaded_photo
+    return uploaded_photo['photo'], uploaded_photo['server'], uploaded_photo['hash']
 
 
-def save_wall_photo(url, group_id, uploaded_photo, payloads):
+def save_wall_photo(url, group_id, photo, server, photo_hash, token, api_version):
     url_method = f'{url}photos.saveWallPhoto'
-    payloads.update({
+    payloads = {
+        'access_token': token,
+        'extended': 1,
         'group_id': group_id,
-        'photo': uploaded_photo['photo'],
-        'server': uploaded_photo['server'],
-        'hash': uploaded_photo['hash']
-    })
+        'photo': photo,
+        'server': server,
+        'hash': photo_hash,
+        'v': api_version
+    }
     response = requests.post(url_method, params=payloads)
     response.raise_for_status()
     response_details = response.json()
@@ -62,14 +70,16 @@ def save_wall_photo(url, group_id, uploaded_photo, payloads):
     return saved_photo
 
 
-def post_photo(photo, comment, url, group_id, payloads):
+def post_photo(photo, comment, url, group_id, token, api_version):
     url_method = f'{url}wall.post'
-    payloads.update({
+    payloads = {
+        'access_token': token,
         'owner_id': f'-{group_id}',
         'from_group': 1,
         'message': comment,
-        'attachments': f'photo{photo["owner_id"]}_{photo["id"]}'
-    })
+        'attachments': f'photo{photo["owner_id"]}_{photo["id"]}',
+        'v': api_version
+    }
     response = requests.post(url_method, params=payloads)
     response.raise_for_status()
     response_details = response.json()
@@ -85,22 +95,19 @@ def get_response_status(response_details):
 if __name__ == '__main__':
     load_dotenv()
 
+    vk_api_version = 5.131
     vk_token = os.getenv('VK_ACCESS_TOKEN')
     vk_group_id = os.getenv('VK_GROUP_ID')
     vk_url = 'https://api.vk.com/method/'
-    payloads = {
-        'access_token': vk_token,
-        'extended': 1,
-        'v': 5.131
-    }
 
     comics_link, comics_comment, filename = get_comics_details()
     download_comics(comics_link, filename)
 
     try:
-        upload_server = get_wall_upload_server(vk_url, vk_group_id)
-        uploaded_photo = upload_photo(upload_server, filename)
-        saved_photo = save_wall_photo(vk_url, vk_group_id, uploaded_photo, payloads)
-        post_photo(saved_photo, comics_comment, vk_url, vk_group_id, payloads)
+        upload_server = get_wall_upload_server(vk_url, vk_group_id, vk_token, vk_api_version)
+        photos_object, photo_server, photo_hash = upload_photo(upload_server, filename)
+        saved_photo = save_wall_photo(vk_url, vk_group_id, photos_object, photo_server, photo_hash,
+                                      vk_token, vk_api_version)
+        post_photo(saved_photo, comics_comment, vk_url, vk_group_id, vk_token, vk_api_version)
     finally:
         os.remove(filename)
