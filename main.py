@@ -44,7 +44,7 @@ def upload_photo(upload_url, photo):
     with open(photo, 'rb') as file:
         files = {'photo': file}
         response = requests.post(upload_url, files=files)
-        response.raise_for_status()
+    response.raise_for_status()
     if response.json()['photo'] == '[]':
         return None
     uploaded_photo = response.json()
