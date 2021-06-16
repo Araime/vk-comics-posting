@@ -5,16 +5,16 @@ from dotenv import load_dotenv
 from urllib import parse
 
 
-def get_random_comics_info():
-    current_comics = requests.get('https://xkcd.com/info.0.json')
-    current_comics.raise_for_status()
-    random_comics_id = random.randint(1, current_comics.json()['num'])
-    random_comics = requests.get(f'https://xkcd.com/{random_comics_id}/info.0.json')
+def get_comics_details():
+    last_comics = requests.get('https://xkcd.com/info.0.json')
+    last_comics.raise_for_status()
+    comics_id = random.randint(1, last_comics.json()['num'])
+    random_comics = requests.get(f'https://xkcd.com/{comics_id}/info.0.json')
     random_comics.raise_for_status()
-    comix_info = random_comics.json()
-    unquoted_url = parse.unquote(comix_info['img'])
+    comics_details = random_comics.json()
+    unquoted_url = parse.unquote(comics_details['img'])
     filename = parse.urlparse(unquoted_url).path.rstrip('/').split('/')[-1]
-    return comix_info['img'], comix_info['alt'], filename
+    return comics_details['img'], comics_details['alt'], filename
 
 
 def download_comics(comix_link, filename):
@@ -29,9 +29,10 @@ def get_wall_upload_server(url, group_id):
     payloads['group_id'] = group_id
     response = requests.get(url_method, params=payloads)
     response.raise_for_status()
-    if response.json().get('error', None):
-        return None
-    return response.json()['response']['upload_url']
+    response_details = response.json()
+    get_response_status(response_details)
+    upload_server = response_details['response']['upload_url']
+    return upload_server
 
 
 def upload_photo(upload_url, photo):
@@ -41,7 +42,8 @@ def upload_photo(upload_url, photo):
         response.raise_for_status()
     if response.json()['photo'] == '[]':
         return None
-    return response.json()
+    uploaded_photo = response.json()
+    return uploaded_photo
 
 
 def save_wall_photo(url, group_id, uploaded_photo, payloads):
@@ -54,9 +56,10 @@ def save_wall_photo(url, group_id, uploaded_photo, payloads):
     })
     response = requests.post(url_method, params=payloads)
     response.raise_for_status()
-    if response.json().get('error', None):
-        return None
-    return response.json()['response'][0]
+    response_details = response.json()
+    get_response_status(response_details)
+    saved_photo = response_details['response'][0]
+    return saved_photo
 
 
 def post_photo(photo, comment, url, group_id, payloads):
@@ -69,7 +72,14 @@ def post_photo(photo, comment, url, group_id, payloads):
     })
     response = requests.post(url_method, params=payloads)
     response.raise_for_status()
-    return response.json()
+    response_details = response.json()
+    get_response_status(response_details)
+    return response_details
+
+
+def get_response_status(response_details):
+    if response_details.get('error'):
+        raise requests.HTTPError(response_details['error']['error_code'])
 
 
 if __name__ == '__main__':
@@ -84,11 +94,13 @@ if __name__ == '__main__':
         'v': 5.131
     }
 
-    comics_link, comics_comment, filename = get_random_comics_info()
+    comics_link, comics_comment, filename = get_comics_details()
     download_comics(comics_link, filename)
 
-    upload_server = get_wall_upload_server(vk_url, vk_group_id)
-    uploaded_photo = upload_photo(upload_server, filename)
-    saved_photo = save_wall_photo(vk_url, vk_group_id, uploaded_photo, payloads)
-    post_photo(saved_photo, comics_comment, vk_url, vk_group_id, payloads)
-    os.remove(filename)
+    try:
+        upload_server = get_wall_upload_server(vk_url, vk_group_id)
+        uploaded_photo = upload_photo(upload_server, filename)
+        saved_photo = save_wall_photo(vk_url, vk_group_id, uploaded_photo, payloads)
+        post_photo(saved_photo, comics_comment, vk_url, vk_group_id, payloads)
+    finally:
+        os.remove(filename)
