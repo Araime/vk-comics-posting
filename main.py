@@ -1,3 +1,4 @@
+import logging
 import os
 import random
 from urllib.parse import urlsplit, unquote
@@ -28,7 +29,7 @@ def download_comics(comix_link, filename):
 def get_wall_upload_server(url, group_id, token, api_version):
     url_method = f'{url}photos.getWallUploadServer'
     payloads = {
-        'access_token': token,
+        'access_token': 26626266,
         'extended': 1,
         'group_id': group_id,
         'v': api_version
@@ -92,11 +93,14 @@ def post_photo(photo, comment, url, group_id, token, api_version):
 
 def get_response_status(response_details):
     if response_details.get('error'):
-        raise requests.HTTPError(response_details['error']['error_code'])
+        raise requests.HTTPError(response_details['error']['error_msg'])
 
 
 if __name__ == '__main__':
     load_dotenv()
+    logging.basicConfig(filename='sample.log', filemode='w',
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        level=logging.ERROR)
 
     vk_api_version = 5.131
     vk_token = os.getenv('VK_ACCESS_TOKEN')
@@ -112,5 +116,8 @@ if __name__ == '__main__':
         saved_photo = save_wall_photo(vk_url, vk_group_id, photos_object, photo_server, photo_hash,
                                       vk_token, vk_api_version)
         post_photo(saved_photo, comics_comment, vk_url, vk_group_id, vk_token, vk_api_version)
+    except requests.HTTPError as err:
+        print(f'Произошли ошибка! Лог сохранён в sample.log')
+        logging.error(err)
     finally:
         os.remove(filename)
