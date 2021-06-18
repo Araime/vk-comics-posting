@@ -48,11 +48,13 @@ def upload_photo(upload_url, photo):
         files = {'photo': file}
         response = requests.post(upload_url, files=files)
     response.raise_for_status()
+    response_details = response.json()
+    check_vk_response_status(response_details)
     if response.json()['photo'] == '[]':
         return None
-    photos_object = response.json()['photo']
-    photo_server = response.json()['server']
-    photo_hash = response.json()['hash']
+    photos_object = response_details['photo']
+    photo_server = response_details['server']
+    photo_hash = response_details['hash']
     return photos_object, photo_server, photo_hash
 
 
