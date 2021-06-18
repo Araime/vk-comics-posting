@@ -49,8 +49,10 @@ def upload_photo(upload_url, photo):
     response.raise_for_status()
     if response.json()['photo'] == '[]':
         return None
-    uploaded_photo = response.json()
-    return uploaded_photo['photo'], uploaded_photo['server'], uploaded_photo['hash']
+    photos_object = response.json()['photo']
+    photo_server = response.json()['server']
+    photo_hash = response.json()['hash']
+    return photos_object, photo_server, photo_hash
 
 
 def save_wall_photo(url, group_id, photo, server, photo_hash, token, api_version):
