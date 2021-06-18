@@ -15,7 +15,8 @@ def get_random_comics_details():
     random_comics.raise_for_status()
     comics_details = random_comics.json()
     unquoted_url = unquote(comics_details['img'])
-    filename = urlsplit(unquoted_url).path.rstrip('/').split('/')[-1]
+    filepath = urlsplit(unquoted_url).path
+    filename = os.path.split(filepath)[-1]
     return comics_details['img'], comics_details['alt'], filename
 
 
