@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import requests
 
 
-def get_comics_details():
+def get_random_comics_details():
     last_comics = requests.get('https://xkcd.com/info.0.json')
     last_comics.raise_for_status()
     comics_id = random.randint(1, last_comics.json()['num'])
@@ -37,7 +37,7 @@ def get_wall_upload_server(url, group_id, token, api_version):
     response = requests.get(url_method, params=payloads)
     response.raise_for_status()
     response_details = response.json()
-    get_response_status(response_details)
+    check_vk_response_status(response_details)
     upload_server = response_details['response']['upload_url']
     return upload_server
 
@@ -67,7 +67,7 @@ def save_wall_photo(url, group_id, photo, server, photo_hash, token, api_version
     response = requests.post(url_method, params=payloads)
     response.raise_for_status()
     response_details = response.json()
-    get_response_status(response_details)
+    check_vk_response_status(response_details)
     saved_photo = response_details['response'][0]
     return saved_photo
 
@@ -87,11 +87,11 @@ def post_photo(photo, comment, url, group_id, token, api_version):
     response = requests.post(url_method, params=payloads)
     response.raise_for_status()
     response_details = response.json()
-    get_response_status(response_details)
+    check_vk_response_status(response_details)
     return response_details
 
 
-def get_response_status(response_details):
+def check_vk_response_status(response_details):
     if response_details.get('error'):
         raise requests.HTTPError(response_details['error']['error_msg'])
 
@@ -107,7 +107,7 @@ if __name__ == '__main__':
     vk_group_id = os.getenv('VK_GROUP_ID')
     vk_url = 'https://api.vk.com/method/'
 
-    comics_link, comics_comment, filename = get_comics_details()
+    comics_link, comics_comment, filename = get_random_comics_details()
     download_comics(comics_link, filename)
 
     try:
