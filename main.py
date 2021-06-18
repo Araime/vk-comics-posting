@@ -1,8 +1,9 @@
 import os
 import random
-import requests
-from dotenv import load_dotenv
 from urllib.parse import urlsplit, unquote
+
+from dotenv import load_dotenv
+import requests
 
 
 def get_comics_details():
