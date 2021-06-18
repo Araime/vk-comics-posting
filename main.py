@@ -51,7 +51,7 @@ def upload_photo(upload_url, photo):
     response_details = response.json()
     check_vk_response_status(response_details)
     if response_details['photo'] == '[]':
-        raise ValueError('Произошла ошибка, в response_details["photo"] сервер прислал пустой список')
+        raise ValueError('Произошла ошибка, Лог с описанием ошибки сохранен в sample.log')
     photos_object = response_details['photo']
     photo_server = response_details['server']
     photo_hash = response_details['hash']
@@ -98,7 +98,8 @@ def post_photo(photo, comment, url, group_id, token, api_version):
 
 def check_vk_response_status(response_details):
     if response_details.get('error'):
-        raise requests.HTTPError(response_details['error']['error_msg'])
+        raise requests.HTTPError(f'Код {response_details["error"]["error_code"]} - '
+                                 f'{response_details["error"]["error_msg"]}')
 
 
 if __name__ == '__main__':
@@ -122,10 +123,10 @@ if __name__ == '__main__':
                                       vk_token, vk_api_version)
         post_photo(saved_photo, comics_comment, vk_url, vk_group_id, vk_token, vk_api_version)
     except requests.HTTPError as err:
-        print(f'Произошли ошибка! Лог сохранён в sample.log')
+        print(f'Произошли ошибка! Лог с кодом и описанием ошибки сохранён в sample.log')
         logging.error(err)
     except ValueError as err:
-        print(err.args)
-        logging.error(err)
+        print(err)
+        logging.error(f'В response_details["photo"] сервер прислал пустой список')
     finally:
         os.remove(filename)
