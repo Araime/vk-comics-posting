@@ -29,7 +29,7 @@ def download_comics(comix_link, filename):
 def get_wall_upload_server(url, group_id, token, api_version):
     url_method = f'{url}photos.getWallUploadServer'
     payloads = {
-        'access_token': 26626266,
+        'access_token': token,
         'extended': 1,
         'group_id': group_id,
         'v': api_version
