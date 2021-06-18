@@ -72,13 +72,15 @@ def save_wall_photo(url, group_id, photo, server, photo_hash, token, api_version
 
 
 def post_photo(photo, comment, url, group_id, token, api_version):
+    owner_id = photo['owner_id']
+    media_id = photo['media_id']
     url_method = f'{url}wall.post'
     payloads = {
         'access_token': token,
         'owner_id': f'-{group_id}',
         'from_group': 1,
         'message': comment,
-        'attachments': f'photo{photo["owner_id"]}_{photo["id"]}',
+        'attachments': f'photo{owner_id}_{media_id}',
         'v': api_version
     }
     response = requests.post(url_method, params=payloads)
