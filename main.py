@@ -52,10 +52,10 @@ def upload_photo(upload_url, photo):
     check_vk_response_status(response_details)
     if response_details['photo'] == '[]':
         raise ValueError('Произошла ошибка, Лог с описанием ошибки сохранен в sample.log')
-    photos_object = response_details['photo']
+    photo_object = response_details['photo']
     photo_server = response_details['server']
     photo_hash = response_details['hash']
-    return photos_object, photo_server, photo_hash
+    return photo_object, photo_server, photo_hash
 
 
 def save_wall_photo(url, group_id, photo, server, photo_hash, token, api_version):
@@ -118,8 +118,8 @@ if __name__ == '__main__':
 
     try:
         upload_server = get_wall_upload_server(vk_url, vk_group_id, vk_token, vk_api_version)
-        photos_object, photo_server, photo_hash = upload_photo(upload_server, filename)
-        saved_photo = save_wall_photo(vk_url, vk_group_id, photos_object, photo_server, photo_hash,
+        photo_object, photo_server, photo_hash = upload_photo(upload_server, filename)
+        saved_photo = save_wall_photo(vk_url, vk_group_id, photo_object, photo_server, photo_hash,
                                       vk_token, vk_api_version)
         post_photo(saved_photo, comics_comment, vk_url, vk_group_id, vk_token, vk_api_version)
     except requests.HTTPError as err:
