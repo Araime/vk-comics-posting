@@ -74,12 +74,12 @@ def save_wall_photo(url, group_id, photo, server, photo_hash, token, api_version
     response_details = response.json()
     check_vk_response_status(response_details)
     saved_photo = response_details['response'][0]
-    return saved_photo
+    owner_id = saved_photo['owner_id']
+    media_id = saved_photo['id']
+    return owner_id, media_id
 
 
-def post_photo(photo, comment, url, group_id, token, api_version):
-    owner_id = photo['owner_id']
-    media_id = photo['id']
+def post_photo(owner_id, media_id, comment, url, group_id, token, api_version):
     url_method = f'{url}wall.post'
     payloads = {
         'access_token': token,
@@ -119,9 +119,9 @@ if __name__ == '__main__':
     try:
         upload_server = get_wall_upload_server(vk_url, vk_group_id, vk_token, vk_api_version)
         photo_object, photo_server, photo_hash = upload_photo(upload_server, filename)
-        saved_photo = save_wall_photo(vk_url, vk_group_id, photo_object, photo_server, photo_hash,
-                                      vk_token, vk_api_version)
-        post_photo(saved_photo, comics_comment, vk_url, vk_group_id, vk_token, vk_api_version)
+        owner_id, media_id = save_wall_photo(vk_url, vk_group_id, photo_object, photo_server,
+                                             photo_hash, vk_token, vk_api_version)
+        post_photo(owner_id, media_id, comics_comment, vk_url, vk_group_id, vk_token, vk_api_version)
     except requests.HTTPError as err:
         print(f'Произошли ошибка! Лог с кодом и описанием ошибки сохранён в sample.log')
         logging.error(err)
